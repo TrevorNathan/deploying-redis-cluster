@@ -181,9 +181,6 @@ $ kubectl describe pods redis-cluster-0 | grep pvc
   Normal  SuccessfulAttachVolume  29m   attachdetach-controller                          AttachVolume.Attach succeeded for volume "pvc-ae61ad5c-f0a5-11e8-a6e0-42010aa40039"
 ```
 
-![02](images/02-rancher-redis-cluster-sts.png)
-![03](images/03-rancher-redis-cluster-pv.png)
-
 
 Now we need to form Redis Cluster. To do this, let's run the following command and type 'yes' to accept the configuration. We will see that first three nodes will be selected to be **master**, last three will be **slaves**.
 
@@ -472,9 +469,6 @@ deployment.apps/hit-counter-app created
 
 As soon as hit-counter-lb Service is up and we have a public IP address assigned we can start hitting it. The request is going to call our python script and this, using a library, will connect to Redis and increase a key called `hits` and then return it as response.
 
-![04](images/04-rancher-app-deployment.png)
-![05](images/05-rancher-app-lb.png)
-![06](images/06-rancher-app-hit-before.png)
 
 Now, as we saw the Redis key increasing with every hit, let's try bring one of the master nodes down. We will see how `redis-cluster-0` previously as master, will turn into slave, and its slave, `redis-cluster-3` will become master. Now try to hit again the public IP, you will see that the number of hits is kept and data was not lost.
 
@@ -504,7 +498,6 @@ $ kubectl exec -it redis-cluster-3 -- redis-cli role
 ```
 Bringing down a node and checking to see how roles have changed for the two master-slave pair.
 
-![07](images/07-rancher-bring-redis-node-down.png)
 
 **After:**
 ```bash
@@ -526,7 +519,6 @@ $ kubectl exec -it redis-cluster-3 -- redis-cli role
 You can see here, in the last command, the IP for `redis-cluster-0` node has changed. Previously was `10.28.0.5`, now it is `10.28.2.12`. If you remember few lines above, we were saying that Redis relies on a configuration file that keeps track of other cluster instances and their roles. So, how did the cluster remain up and running since the role and the IP changed? Simple, in our `configMap` we have a script that automatically replaces the old IP for the node with its new one, this way our cluster is not impacted for any node failure.
 So, we can check the public IP for our python app, hit it few times and can see the counter didn't reset but resumed from previously stored value.
 
-![08](images/08-rancher-app-hit-after.png)
 
 ## Conclusion
 
